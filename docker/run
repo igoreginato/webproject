@@ -1,3 +1,3 @@
 #!/bin/bash
 
-docker run -d --name nodedev -v $(pwd)../server:/app -p 3000:3000 -p 2222:22 helladarion/nodebase
+docker run -d --name nodedev -v $(pwd)/../server:/app -p 3000:3000 -p 2222:22 helladarion/nodebase
