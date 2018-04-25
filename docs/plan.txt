@@ -2,6 +2,6 @@ List of necessary tables:
 
 projects - number and a name
 equipment - type, name, brand, description, acquisition_date, status=available, unavailable, picture=optional
-transference - from, to, when
-loans - date, equipment, employee, status, quantity
+transference - what ,from, to, when, quantity
+loans - date, equipment, employee, quantity
 employees - first_name, last_name, role, identification, email, password,status=active, inactive
