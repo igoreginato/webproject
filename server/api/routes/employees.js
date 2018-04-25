@@ -75,6 +75,7 @@ router.post('/', (req, res, next) => {
     role: req.body.role,
     identification: req.body.identification,
     email: req.body.email,
+    registered: req.body.registered,
     password: req.body.password
   });
   employee
