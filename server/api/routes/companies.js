@@ -34,32 +34,41 @@ router.get('/', (req, res, next) => {
 
 // router.post('/', upload.single('productImage'), (req, res, next) => {
 router.post('/', (req, res, next) => {
-  console.log(req.file);
-  const company = new Company({
-    _id: new mongoose.Types.ObjectId(),
-    name: req.body.name
-  });
-  company
-    .save()
-    .then(result => {
-    console.log(result);
-    res.status(201).json({
-      message: 'Company created successfully',
-      createdCompany: {
-        name: result.name,
-        _id: result._id,
-        request: {
-          type: 'GET',
-          url: 'http://localhost:3000/companies/' + result._id
-        }
-      }
-    });
+  Company.find({name: req.body.name})
+  .exec()
+  .then(comp => {
+    if(comp.length >= 1) {
+      return res.status(409).json({
+        message: "Company name exists"
+      })
+    } else {
+      console.log(req.file);
+      const company = new Company({
+        _id: new mongoose.Types.ObjectId(),
+        name: req.body.name
+      });
+      company
+      .save()
+      .then(result => {
+        console.log(result);
+        res.status(201).json({
+          message: 'Company created successfully',
+          createdCompany: {
+            name: result.name,
+            _id: result._id,
+            request: {
+              type: 'GET',
+              url: 'http://localhost:3000/companies/' + result._id
+            }
+          }
+        });
+      })
+      .catch(err => {
+        console.log(err);
+        res.status(500).json({error: err})
+      });
+    }
   })
-    .catch(err => {
-      console.log(err);
-      res.status(500).json({error: err})
-    });
-
 });
 
 router.get('/:companyId', (req, res, next) => {
