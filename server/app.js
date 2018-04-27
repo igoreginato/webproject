@@ -7,12 +7,13 @@ const mongoose = require('mongoose');
 const productRoutes = require('./api/routes/products');
 const orderRoutes = require('./api/routes/orders');
 const employeeRoutes = require('./api/routes/employees');
+const companyRoutes = require('./api/routes/companies');
 
 // Database connection
 mongoose.connect('mongodb://webproject:' + process.env.MONGO_ATLAS_PW + '@web-project-shard-00-00-fj7ye.mongodb.net:27017,web-project-shard-00-01-fj7ye.mongodb.net:27017,web-project-shard-00-02-fj7ye.mongodb.net:27017/test?ssl=true&replicaSet=web-project-shard-0&authSource=admin')
 
 // Logging in the server
-app.use(morgan(':date[iso] :method :url :status :response-time ms - :res[content-length]'));
+app.use(morgan(':date[iso] :method :url :remote-addr :status :response-time ms - :res[content-length]'));
 app.use('/uploads',express.static('uploads'));
 app.use(bodyParser.urlencoded({extended: false}));
 app.use(bodyParser.json());
@@ -32,6 +33,7 @@ app.use((req, res, next) => {
 app.use('/products', productRoutes);
 app.use('/orders', orderRoutes);
 app.use('/employees', employeeRoutes);
+app.use('/companies', companyRoutes);
 
 app.use((req, res, next) => {
   const error = new Error('Not found');

@@ -32,27 +32,22 @@ const mongoose = require('mongoose');
 // });
 // ##########################################################
 
-const Employee = require('../models/employee')
+const Company = require('../models/company')
 
 router.get('/', (req, res, next) => {
-  Employee.find()
-    .select('first_name last_name _id role identification email')
-    .populate('company', 'name')
+  Company.find()
+    .select('name _id')
     .exec()
     .then(docs => {
       const response = {
         count: docs.length,
-        employees: docs.map(doc => {
+        companies: docs.map(doc => {
           return {
-            name: doc.first_name + " " + doc.last_name,
-            role: doc.role,
-            identification: doc.identification,
-            email: doc.email,
+            name: doc.name,
             _id: doc._id,
-            company: doc.company,
             request: {
-              type: 'DELETE',
-              url: 'http://localhost:3000/employees/' + doc._id
+              type: 'GET',
+              url: 'http://localhost:3000/companies/' + doc._id
             }
           }
         })
@@ -70,31 +65,22 @@ router.get('/', (req, res, next) => {
 // router.post('/', upload.single('productImage'), (req, res, next) => {
 router.post('/', (req, res, next) => {
   console.log(req.file);
-  const employee = new Employee({
+  const company = new Company({
     _id: new mongoose.Types.ObjectId(),
-    company: req.body.company,
-    first_name: req.body.first_name,
-    last_name: req.body.last_name,
-    role: req.body.role,
-    identification: req.body.identification,
-    email: req.body.email,
-    registered: req.body.registered,
-    password: req.body.password
+    name: req.body.name
   });
-  employee
+  company
     .save()
     .then(result => {
     console.log(result);
     res.status(201).json({
-      message: 'Employee created successfully',
-      createdEmployee: {
-        name: result.first_name + " " + result.last_name,
-        email: result.email,
-        date: result.registered,
+      message: 'Company created successfully',
+      createdCompany: {
+        name: result.name,
         _id: result._id,
         request: {
           type: 'GET',
-          url: 'http://localhost:3000/employees/' + result._id
+          url: 'http://localhost:3000/companies/' + result._id
         }
       }
     });
@@ -106,10 +92,10 @@ router.post('/', (req, res, next) => {
 
 });
 
-router.get('/:employeeId', (req, res, next) => {
-  const id = req.params.employeeId;
-  Employee.findById(id)
-    .select(' first_name last_name role _id identification email status registered')
+router.get('/:companyId', (req, res, next) => {
+  const id = req.params.companyId;
+  Company.findById(id)
+    .select(' name _id')
     .exec()
     .then(doc => {
       console.log("From database", doc);
@@ -118,7 +104,7 @@ router.get('/:employeeId', (req, res, next) => {
           employee: doc,
           request: {
             type: 'GET',
-            url: 'http://localhost:3000/employees/' + doc._id
+            url: 'http://localhost:3000/companies/' + doc._id
           }
         });
       } else {
@@ -131,21 +117,21 @@ router.get('/:employeeId', (req, res, next) => {
     });
 });
 
-router.patch('/:employeeId', (req, res, next) => {
-  const id = req.params.employeeId;
+router.patch('/:companyId', (req, res, next) => {
+  const id = req.params.companyId;
   const updateOps = {};
   for (const ops of req.body) {
     updateOps[ops.propName] = ops.value;
   }
-  Employee.update({_id: id}, { $set: updateOps })
+  Company.update({_id: id}, { $set: updateOps })
     .exec()
     .then(result => {
       console.log(updateOps);
       res.status(200).json({
-        message: 'Employee updated',
+        message: 'Company updated',
         request: {
           type: 'GET',
-          url: 'http://localhost:3000/employees/' + id
+          url: 'http://localhost:3000/companies/' + id
         }
       });
     })
@@ -157,23 +143,18 @@ router.patch('/:employeeId', (req, res, next) => {
     })
 });
 
-router.delete('/:employeeId', (req, res, next) => {
-  const id = req.params.employeeId;
-  Employee.remove({_id: id})
+router.delete('/:companyId', (req, res, next) => {
+  const id = req.params.companyId;
+  Company.remove({_id: id})
     .exec()
     .then(result => {
       res.status(200).json({
-        message: 'Employee deleted',
+        message: 'Company deleted',
         request: {
           type: 'POST',
-          url: 'http://localhost:3000/employees/',
+          url: 'http://localhost:3000/companies/',
           body: {
-            first_name: 'String',
-            last_name: 'String',
-            role: 'String',
-            identification: 'String',
-            email: 'String',
-            password: 'String'
+            name: 'String'
           }
         }
       });
