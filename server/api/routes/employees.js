@@ -1,6 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const mongoose = require('mongoose');
+const bcrypt = require('bcrypt');
+
 // const multer = require('multer');
 
 // Dealing with file upload
@@ -69,47 +71,68 @@ router.get('/', (req, res, next) => {
 
 // router.post('/', upload.single('productImage'), (req, res, next) => {
 router.post('/', (req, res, next) => {
-  console.log(req.file);
-  const employee = new Employee({
-    _id: new mongoose.Types.ObjectId(),
-    company: req.body.company,
-    first_name: req.body.first_name,
-    last_name: req.body.last_name,
-    role: req.body.role,
-    identification: req.body.identification,
-    email: req.body.email,
-    registered: req.body.registered,
-    password: req.body.password
-  });
-  employee
-    .save()
-    .then(result => {
-    console.log(result);
-    res.status(201).json({
-      message: 'Employee created successfully',
-      createdEmployee: {
-        name: result.first_name + " " + result.last_name,
-        email: result.email,
-        date: result.registered,
-        _id: result._id,
-        request: {
-          type: 'GET',
-          url: 'http://localhost:3000/employees/' + result._id
-        }
-      }
-    });
-  })
-    .catch(err => {
-      console.log(err);
-      res.status(500).json({error: err})
-    });
+  Employee.find({email: req.body.email})
+  .exec()
+  .then(user => {
+    if(user.length >= 1) {
+      return res.status(409).json({
+        message: "Email exists"
+      })
+    } else {
+      bcrypt.hash(req.body.password, 10, (err, hash) => {
+        if(err) {
+          return res.status(500).json({
+            error: err
+          })
+        } else {
+          // console.log(req.file);
+          const employee = new Employee({
+            _id: new mongoose.Types.ObjectId(),
+            company: req.body.company,
+            first_name: req.body.first_name,
+            last_name: req.body.last_name,
+            role: req.body.role,
+            identification: req.body.identification,
+            email: req.body.email,
+            registered: req.body.registered,
+            password: hash
+          });
+          employee
+          .save()
+          .then(result => {
+            console.log(result);
+            res.status(201).json({
+              message: 'Employee created successfully',
+              createdEmployee: {
+                name: result.first_name + " " + result.last_name,
+                email: result.email,
+                registered: result.registered,
+                password: result.password,
+                _id: result._id,
+                company: result.company,
+                request: {
+                  type: 'GET',
+                  url: 'http://localhost:3000/employees/' + result._id
+                }
+              }
+            });
+          })
+          .catch(err => {
+            console.log(err);
+            res.status(500).json({error: err})
+          });
 
+        }
+      })
+    }
+  })
 });
 
 router.get('/:employeeId', (req, res, next) => {
   const id = req.params.employeeId;
   Employee.findById(id)
     .select(' first_name last_name role _id identification email status registered')
+    .populate('company')
     .exec()
     .then(doc => {
       console.log("From database", doc);
@@ -135,14 +158,19 @@ router.patch('/:employeeId', (req, res, next) => {
   const id = req.params.employeeId;
   const updateOps = {};
   for (const ops of req.body) {
-    updateOps[ops.propName] = ops.value;
-  }
+    if (ops.propName === "password") {
+      updateOps[ops.propName] = bcrypt.hashSync(ops.value, 10);;
+    } else {
+      updateOps[ops.propName] = ops.value;
+    };
+  };
   Employee.update({_id: id}, { $set: updateOps })
     .exec()
     .then(result => {
       console.log(updateOps);
       res.status(200).json({
         message: 'Employee updated',
+        values: updateOps,
         request: {
           type: 'GET',
           url: 'http://localhost:3000/employees/' + id
@@ -168,6 +196,7 @@ router.delete('/:employeeId', (req, res, next) => {
           type: 'POST',
           url: 'http://localhost:3000/employees/',
           body: {
+            company: 'companyId',
             first_name: 'String',
             last_name: 'String',
             role: 'String',
