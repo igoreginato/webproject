@@ -7,7 +7,12 @@ const employeeSchema = mongoose.Schema({
   last_name: { type: String, required: true },
   role: { type: String, required: true },
   identification: { type: String, required: true },
-  email: { type: String, required: true, unique: true },
+  email: {
+    type: String,
+    required: true,
+    unique: true,
+    match: /[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?/
+  },
   password: { type: String, required: true },
   registered: { type: Date, default: Date.now },
   status: { type: Boolean, default: true}
